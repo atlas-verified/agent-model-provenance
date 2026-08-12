@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "hooks": {
+    "afterFileEdit": [
+      {
+        "command": "node ./scripts/hooks/provenance-after-edit.cjs"
+      }
+    ],
+    "postToolUse": [
+      {
+        "command": "node ./scripts/hooks/provenance-post-tool.cjs",
+        "matcher": "Write|StrReplace|EditNotebook|Delete"
+      }
+    ],
+    "stop": [
+      {
+        "command": "node ./scripts/hooks/provenance-on-stop.cjs",
+        "loop_limit": 1
+      }
+    ]
+  }
+}

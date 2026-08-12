@@ -1,0 +1,23 @@
+{
+  "name": "agent-model-provenance",
+  "displayName": "Agent Model Provenance",
+  "version": "0.1.0",
+  "description": "Force every Cursor agent edit to leave a machine-readable byline: coder model, planner model, hunks, and plan id. Hooks + rule + pre-commit/CI checker.",
+  "author": {
+    "name": "Jeremy Crane",
+    "email": "jer@atlasverified.ai"
+  },
+  "homepage": "https://github.com/lifeofjer/agent-model-provenance",
+  "repository": "https://github.com/lifeofjer/agent-model-provenance",
+  "license": "MIT",
+  "keywords": [
+    "provenance",
+    "model-tracking",
+    "attribution",
+    "hooks",
+    "agent",
+    "quality",
+    "audit"
+  ],
+  "logo": "assets/logo.svg"
+}

@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Agent model provenance gate — install with:
+#   git config core.hooksPath githooks
+# (or copy this file into .githooks / .husky)
+set -euo pipefail
+ROOT="$(git rev-parse --show-toplevel)"
+if [[ "${SKIP_AGENT_PROVENANCE:-}" == "1" ]]; then
+  echo "agent-provenance: skipped (SKIP_AGENT_PROVENANCE=1)"
+  exit 0
+fi
+if [[ -f "$ROOT/scripts/check-agent-provenance.cjs" ]]; then
+  node "$ROOT/scripts/check-agent-provenance.cjs" --staged
+elif [[ -f "$ROOT/node_modules/agent-model-provenance/scripts/check-agent-provenance.cjs" ]]; then
+  node "$ROOT/node_modules/agent-model-provenance/scripts/check-agent-provenance.cjs" --staged
+else
+  echo "agent-provenance: checker not found — copy scripts/ from agent-model-provenance into this repo" >&2
+  exit 1
+fi

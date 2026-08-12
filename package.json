@@ -1,0 +1,15 @@
+{
+  "name": "agent-model-provenance",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cursor plugin: force model bylines on every agent edit",
+  "license": "MIT",
+  "scripts": {
+    "check": "node scripts/check-agent-provenance.cjs",
+    "check:ci": "node scripts/check-agent-provenance.cjs --ci",
+    "hunks": "node scripts/provenance-hunks.cjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,25 @@
+---
+description: Every agent file edit must leave atlas-agent-provenance/v1 attribution before finishing.
+alwaysApply: true
+---
+
+# Agent edit provenance — enforced
+
+**Enforced by** Cursor hooks (this plugin) + `node scripts/check-agent-provenance.cjs` (pre-commit + CI when installed in the repo).
+
+Skipping attribution is a process failure. Full field dictionary: plugin README.
+
+## Before you finish any edit
+
+1. **Commentable files** (`.ts`, `.tsx`, `.js`, `.md`, `.sql`, `.css`, `.sh`, `.mdc`, etc.): replace/add a top-of-file `atlas-agent-provenance/v1` block at the topmost legal comment location.
+2. **Non-commentable only** (strict JSON, lockfiles, binaries, generated): append one JSON line to `.cursor/agent-provenance.jsonl`.
+3. **Forbidden:** using the sidecar for "large" or "already edited" `.ts`/`.tsx`/`.md` files.
+4. **Forbidden:** `hunks: pending`. Finalize hunks or use `none` only for provenance-only edits. Helper: `node scripts/provenance-hunks.cjs <file>`.
+5. Copy `plan_id` / `plan_path` / `plan_revision` / planner fields from the approved plan, or `none` if planless.
+6. Never invent model ids / Max Mode / context window — use `not_exposed` / `unknown` when not exposed.
+
+## Self-check
+
+Ask: `Did every file I touched get a valid provenance record in this turn?` If no — fix it before stopping. Pre-commit/CI will fail otherwise.
+
+Human-only bypass (not for agents): `SKIP_AGENT_PROVENANCE=1`.
