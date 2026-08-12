@@ -7,8 +7,8 @@
     "name": "Jeremy Crane",
     "email": "jer@atlasverified.ai"
   },
-  "homepage": "https://github.com/lifeofjer/agent-model-provenance",
-  "repository": "https://github.com/lifeofjer/agent-model-provenance",
+  "homepage": "https://github.com/atlas-verified/agent-model-provenance",
+  "repository": "https://github.com/atlas-verified/agent-model-provenance",
   "license": "MIT",
   "keywords": [
     "provenance",

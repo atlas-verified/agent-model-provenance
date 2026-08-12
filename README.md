@@ -22,7 +22,7 @@ Built from production use on a multi-model monorepo. Rules alone get ignored. Th
 ### B) From this repo (local / review)
 
 ```bash
-git clone https://github.com/lifeofjer/agent-model-provenance.git
+git clone https://github.com/atlas-verified/agent-model-provenance.git
 ```
 
 In Cursor, add the plugin from the local folder (Customize → Plugins → add local / path, depending on your Cursor version), **or** vendor the pieces into your project:
@@ -157,7 +157,7 @@ This plugin does not rank models by itself. It makes ranking *possible*.
 1. Keep this repo **public**
 2. Confirm `node` can run the hook scripts locally in a test workspace
 3. Open [cursor.com/marketplace/publish](https://cursor.com/marketplace/publish)
-4. Submit `https://github.com/lifeofjer/agent-model-provenance`
+4. Submit `https://github.com/atlas-verified/agent-model-provenance`
 5. Cursor team reviews (checklist in their [plugins docs](https://cursor.com/docs/reference/plugins))
 
 Alternate contact noted by Cursor's plugin template: Slack or `kniparko@anysphere.com`.
