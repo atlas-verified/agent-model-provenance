@@ -21,6 +21,7 @@ const {
   classifyPath,
   validateCommentableFile,
   validateNonCommentableFile,
+  validateCommitSetPlanConsistency,
   SIDECAR_REL,
 } = require('./lib/agent-provenance.cjs')
 
@@ -30,6 +31,7 @@ function usage() {
 Checks commentable files for in-file atlas-agent-provenance/v1 headers.
 Checks non-commentable files for a matching sidecar line in ${SIDECAR_REL}.
 Rejects hunks: pending. Sidecar cannot satisfy commentable files.
+If the file set includes a *SPRINT.md with a real plan_id, rejects plan_id: none on other files.
 
 Skip: SKIP_AGENT_PROVENANCE=1`)
 }
@@ -69,13 +71,11 @@ function collectFiles(mode, explicitFiles, repoRoot) {
   }
   if (mode === 'ci') {
     const base = resolveBaseRef(repoRoot)
-    // merge-base when possible
     let range = `${base}...HEAD`
     try {
       const mb = execSync(`git merge-base ${base} HEAD`, { cwd: repoRoot, encoding: 'utf8' }).trim()
       if (mb) range = `${mb}...HEAD`
     } catch {
-      // fall back to triple-dot / double-dot
       range = `${base}...HEAD`
     }
     const names = gitLines(`git diff --name-only --diff-filter=ACMR ${range}`, repoRoot)
@@ -84,10 +84,8 @@ function collectFiles(mode, explicitFiles, repoRoot) {
       normalizeRelPath(f, repoRoot)
     )
   }
-  // staged (default)
   const staged = gitLines('git diff --cached --name-only --diff-filter=ACMR', repoRoot)
   if (staged.length) return staged.map((f) => normalizeRelPath(f, repoRoot))
-  // if nothing staged and not in hook, also allow unstaged for local dry-runs via --unstaged
   return []
 }
 
@@ -124,7 +122,6 @@ function main() {
     files = collectFiles(mode, explicitFiles, repoRoot)
   }
 
-  // unique
   files = [...new Set(files)]
 
   if (files.length === 0) {
@@ -134,6 +131,9 @@ function main() {
 
   const failures = []
 
+  // Per-file structural validation (presence, hunks, file field). Do NOT pass
+  // commit-set plan as activePlan here — that would reject files stamped to a
+  // different legitimate plan. The commit-set heuristic below only rejects none.
   for (const rel of files) {
     const kind = classifyPath(rel)
     if (kind === 'ignore') continue
@@ -148,6 +148,18 @@ function main() {
     }
     if (errors.length) {
       failures.push({ file: rel, kind, errors })
+    }
+  }
+
+  // Commit-set heuristic: sprint with real plan_id ⇒ reject plan_id: none elsewhere
+  for (const f of validateCommitSetPlanConsistency(repoRoot, files)) {
+    const already = failures.find((x) => x.file === f.file)
+    if (already) {
+      for (const e of f.errors) {
+        if (!already.errors.includes(e)) already.errors.push(e)
+      }
+    } else {
+      failures.push(f)
     }
   }
 
@@ -167,6 +179,7 @@ Fix:
   - Non-commentable (JSON/lockfiles/etc.): append a line to ${SIDECAR_REL}
   - Never use the sidecar for .ts/.tsx/.md/etc.
   - hunks: pending is rejected — run: node scripts/provenance-hunks.cjs <file>
+  - When a sprint is in the commit, copy its Plan provenance fields — plan_id: none is rejected
   - Human-only bypass: SKIP_AGENT_PROVENANCE=1
 `)
   process.exit(1)

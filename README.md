@@ -44,7 +44,7 @@ Project-level `.cursor/hooks.json` is the most reliable path today (marketplace 
 | Piece | Role |
 |---|---|
 | `rules/agent-edit-provenance.mdc` | Always-on reminder |
-| `hooks/hooks.json` | `afterFileEdit` track · `postToolUse` remind · `stop` force one fix-up turn |
+| `hooks/hooks.json` | `afterFileEdit` track · `beforeSubmitPrompt` bind plan · `postToolUse` remind · `stop` force one fix-up turn |
 | `scripts/check-agent-provenance.cjs` | Pre-commit / CI gate |
 | `scripts/provenance-hunks.cjs` | Suggest hunk coordinates from git diff |
 | `githooks/pre-commit` | Optional commit blocker |
@@ -144,6 +144,29 @@ agent-provenance:
       env:
         BASE_REF: ${{ github.base_ref }}
       run: node scripts/check-agent-provenance.cjs --ci
+```
+
+
+## Plan binding (v0.2)
+
+Agents used to pass the gate with `plan_id: none` even when a real plan was approved.
+
+Hooks now bind an `active_plan` onto the conversation session from:
+
+1. Sprint / plan markdown with a `## Plan provenance` (or `plan_id:`) stanza
+2. `CreatePlan` / writes under `~/.cursor/plans/*.plan.md`
+3. `beforeSubmitPrompt` attachments of sprint or plan files
+
+When a plan is bound:
+
+- `plan_id: none` **fails** validation
+- postToolUse / stop inject the exact plan stanza to copy
+- Pre-commit/CI: if the file set includes a `*SPRINT.md` with a real `plan_id`, every other record with `plan_id: none` fails
+
+`plan_id: none` is still allowed for truly planless work (no bound plan).
+
+```bash
+node --test scripts/__tests__/agent-provenance-plan-bind.test.cjs
 ```
 
 ## Why this exists

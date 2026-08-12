@@ -1,8 +1,8 @@
 {
   "name": "agent-model-provenance",
   "displayName": "Agent Model Provenance",
-  "version": "0.1.0",
-  "description": "Force every Cursor agent edit to leave a machine-readable byline: coder model, planner model, hunks, and plan id. Hooks + rule + pre-commit/CI checker.",
+  "version": "0.2.0",
+  "description": "Force every Cursor agent edit to leave a machine-readable byline: coder model, planner model, plan id, and hunks. Hooks bind the active plan and reject plan_id none when a plan is known.",
   "author": {
     "name": "Jeremy Crane",
     "email": "jer@atlasverified.ai"

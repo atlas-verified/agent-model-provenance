@@ -6,10 +6,15 @@
         "command": "node ./scripts/hooks/provenance-after-edit.cjs"
       }
     ],
+    "beforeSubmitPrompt": [
+      {
+        "command": "node ./scripts/hooks/provenance-before-prompt.cjs"
+      }
+    ],
     "postToolUse": [
       {
         "command": "node ./scripts/hooks/provenance-post-tool.cjs",
-        "matcher": "Write|StrReplace|EditNotebook|Delete"
+        "matcher": "Write|StrReplace|EditNotebook|Delete|CreatePlan|TabWrite"
       }
     ],
     "stop": [

@@ -3,6 +3,7 @@ description: Every agent file edit must leave atlas-agent-provenance/v1 attribut
 alwaysApply: true
 ---
 
+
 # Agent edit provenance — enforced
 
 **Enforced by** Cursor hooks (this plugin) + `node scripts/check-agent-provenance.cjs` (pre-commit + CI when installed in the repo).
@@ -13,13 +14,19 @@ Skipping attribution is a process failure. Full field dictionary: plugin README.
 
 1. **Commentable files** (`.ts`, `.tsx`, `.js`, `.md`, `.sql`, `.css`, `.sh`, `.mdc`, etc.): replace/add a top-of-file `atlas-agent-provenance/v1` block at the topmost legal comment location.
 2. **Non-commentable only** (strict JSON, lockfiles, binaries, generated): append one JSON line to `.cursor/agent-provenance.jsonl`.
-3. **Forbidden:** using the sidecar for "large" or "already edited" `.ts`/`.tsx`/`.md` files.
+3. **Forbidden:** using the sidecar for “large” or “already edited” `.ts`/`.tsx`/`.md` files.
 4. **Forbidden:** `hunks: pending`. Finalize hunks or use `none` only for provenance-only edits. Helper: `node scripts/provenance-hunks.cjs <file>`.
-5. Copy `plan_id` / `plan_path` / `plan_revision` / planner fields from the approved plan, or `none` if planless.
+5. Copy `plan_id` / `plan_path` / `plan_revision` / planner fields from the approved sprint doc. **`plan_id: none` is only allowed for explicitly planless work.** When hooks bind an active plan (or the commit includes a sprint), `none` fails the gate.
 6. Never invent model ids / Max Mode / context window — use `not_exposed` / `unknown` when not exposed.
+
+## Plan fields (sprint 502)
+
+- Hooks bind `active_plan` from sprint markdown (`## Plan provenance`), `CreatePlan` / `~/.cursor/plans/*.plan.md`, or prompt attachments.
+- postToolUse / stop inject the exact plan stanza to copy when files still say `plan_id: none`.
+- Pre-commit/CI: if the file set includes a `*SPRINT.md` with a real `plan_id`, every other record with `plan_id: none` fails.
 
 ## Self-check
 
-Ask: `Did every file I touched get a valid provenance record in this turn?` If no — fix it before stopping. Pre-commit/CI will fail otherwise.
+Ask: `Did every file I touched get a valid provenance record with the correct plan fields in this turn?` If no — fix it before stopping. Pre-commit/CI will fail otherwise.
 
 Human-only bypass (not for agents): `SKIP_AGENT_PROVENANCE=1`.

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * stop: if session-touched files still lack provenance, force one remediation turn.
+ * stop: if session-touched files still lack provenance or plan fields, force one remediation turn.
  */
 
 const fs = require('fs')
@@ -12,6 +12,8 @@ const {
   validateCommentableFile,
   validateNonCommentableFile,
   saveSession,
+  formatActivePlanStanza,
+  isRealPlanId,
 } = require('../lib/agent-provenance.cjs')
 
 function readStdin() {
@@ -27,14 +29,15 @@ function readStdin() {
 
 function revalidate(repoRoot, session) {
   const pending = []
+  const options = { activePlan: session.active_plan || null }
   for (const rel of Object.keys(session.files || {})) {
     const kind = classifyPath(rel)
     if (kind === 'ignore') continue
     const abs = path.join(repoRoot, rel)
     if (!fs.existsSync(abs)) continue
     let errors = []
-    if (kind === 'commentable') errors = validateCommentableFile(abs, rel)
-    else if (kind === 'sidecar') errors = validateNonCommentableFile(repoRoot, rel)
+    if (kind === 'commentable') errors = validateCommentableFile(abs, rel, options)
+    else if (kind === 'sidecar') errors = validateNonCommentableFile(repoRoot, rel, options)
     if (errors.length) {
       pending.push({ rel, error: errors[0] })
       session.files[rel] = { status: `fail:${errors[0]}`, updated_at: new Date().toISOString() }
@@ -91,17 +94,22 @@ async function main() {
       .map((p) => `- ${p.rel}: ${p.error}`)
       .join('\n')
 
-    const followup_message = [
+    const parts = [
       'PROVENANCE GATE: You edited files without valid atlas-agent-provenance/v1 attribution.',
       'Do not start new feature work. Fix provenance on every file below, then stop.',
       'Rules: in-file header for commentable sources; sidecar ONLY for JSON/lockfiles/binaries; hunks: pending is invalid.',
-      'Helper (from your repo after install/copy): node scripts/provenance-hunks.cjs <file>',
+      'If a plan is bound, plan_id: none is invalid — copy the ACTIVE PLAN fields below.',
+      'Helper: node scripts/provenance-hunks.cjs <file>',
       'Checker: node scripts/check-agent-provenance.cjs --files <paths>',
       '',
       list,
-    ].join('\n')
+    ]
 
-    process.stdout.write(JSON.stringify({ followup_message }) + '\n')
+    if (isRealPlanId(session.active_plan && session.active_plan.plan_id)) {
+      parts.push('', formatActivePlanStanza(session.active_plan))
+    }
+
+    process.stdout.write(JSON.stringify({ followup_message: parts.join('\n') }) + '\n')
     process.exit(0)
   } catch {
     process.stdout.write('{}\n')
