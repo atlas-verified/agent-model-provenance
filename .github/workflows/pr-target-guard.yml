@@ -1,0 +1,70 @@
+# atlas-agent-provenance/v1
+# schema: atlas-agent-provenance/v1
+# change_id: a740e5ad-dd02-4c83-8de4-a13b4545e1b4
+# timestamp: 2026-10-16T04:05:48.290604Z
+# file: .github/workflows/pr-target-guard.yml
+# change_kind: create
+# base_commit: 335144c992b498d6f15810adb61f25c94b59bea4
+# hunks: -0,0:+1,70
+# coder_runtime: codex-desktop
+# coder_model: Codex (GPT-6)
+# coder_model_id: not_exposed
+# coder_reasoning: not_exposed
+# coder_max_mode: not_exposed
+# coder_mode: agent
+# coder_context_window: not_exposed
+# plan_id: atlas-dev-pr-routing
+# plan_path: dev-workflow/PR-TARGET-POLICY.md
+# plan_revision: 7ad024450572908b34c55d77c7e1a7f07be592c3dd399672fd5e9942d1627192
+# planner_model: Codex (GPT-6)
+# planner_model_id: not_exposed
+# planner_reasoning: not_exposed
+# planner_max_mode: not_exposed
+# planner_context_window: not_exposed
+# fixes_change_ids: none
+
+name: Atlas PR Target Guard
+
+# Trusted default-branch workflow; inspect event data only.
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, edited, ready_for_review, converted_to_draft]
+
+permissions: {}
+concurrency:
+  group: atlas-pr-target-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  pr-target:
+    name: Atlas PR Target
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Validate PR destination and promotion source
+        shell: bash
+        run: |
+          node <<'NODE'
+          function validatePullRequest(pr, repository) {
+            const validRepo = (repo) => Number.isSafeInteger(repo?.id) && repo.id > 0
+              && typeof repo.full_name === 'string' && /^[^/\s]+\/[^/\s]+$/.test(repo.full_name);
+            const sameRepo = (a, b) => validRepo(a) && validRepo(b)
+              && a.id === b.id && a.full_name.toLowerCase() === b.full_name.toLowerCase();
+            if (!validRepo(repository) || !sameRepo(pr?.base?.repo, repository)
+                || !validRepo(pr?.head?.repo) || typeof pr.head.ref !== 'string' || !pr.head.ref) {
+              throw new Error('Cannot verify PR repository and branch metadata; refusing to pass.');
+            }
+            if (pr.base.ref === 'dev') return;
+            if (pr.base.ref === 'main' && pr.head.ref === 'dev' && sameRepo(pr.head.repo, repository)) return;
+            throw new Error('Atlas PR policy: ordinary PRs must target dev. Only same-repository dev -> main is allowed for a deliberate production promotion.');
+          }
+
+          try {
+            const event = JSON.parse(require('node:fs').readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
+            validatePullRequest(event.pull_request, event.repository);
+            console.log('Atlas PR target policy passed. Production promotion still requires deliberate approval.');
+          } catch (error) {
+            console.error(error.message);
+            process.exitCode = 1;
+          }
+          NODE

@@ -1,0 +1,41 @@
+# atlas-agent-provenance/v1
+# schema: atlas-agent-provenance/v1
+# change_id: b48672d2-1c40-40cc-87eb-acb55059a5c6
+# timestamp: 2026-10-16T04:05:48.290817Z
+# file: .github/workflows/pr-target-guard-tests.yml
+# change_kind: create
+# base_commit: 335144c992b498d6f15810adb61f25c94b59bea4
+# hunks: -0,0:+1,41
+# coder_runtime: codex-desktop
+# coder_model: Codex (GPT-6)
+# coder_model_id: not_exposed
+# coder_reasoning: not_exposed
+# coder_max_mode: not_exposed
+# coder_mode: agent
+# coder_context_window: not_exposed
+# plan_id: atlas-dev-pr-routing
+# plan_path: dev-workflow/PR-TARGET-POLICY.md
+# plan_revision: 7ad024450572908b34c55d77c7e1a7f07be592c3dd399672fd5e9942d1627192
+# planner_model: Codex (GPT-6)
+# planner_model_id: not_exposed
+# planner_reasoning: not_exposed
+# planner_max_mode: not_exposed
+# planner_context_window: not_exposed
+# fixes_change_ids: none
+
+name: PR Routing Tests
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+permissions:
+  contents: read
+jobs:
+  tests:
+    name: PR Routing Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - run: node --test scripts/pr-target-guard.test.cjs

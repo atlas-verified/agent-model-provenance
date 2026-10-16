@@ -1,0 +1,34 @@
+---
+description: Atlas PRs target dev; only deliberate same-repository dev-to-main production promotion is allowed.
+alwaysApply: true
+---
+<!-- atlas-agent-provenance/v1
+schema: atlas-agent-provenance/v1
+change_id: 403fccd1-424f-4f04-b098-a757b6603aaf
+timestamp: 2026-10-16T04:05:48.289214Z
+file: .cursor/rules/pr-target-policy.mdc
+change_kind: create
+base_commit: 335144c992b498d6f15810adb61f25c94b59bea4
+hunks: -0,0:+1,34
+coder_runtime: codex-desktop
+coder_model: Codex (GPT-6)
+coder_model_id: not_exposed
+coder_reasoning: not_exposed
+coder_max_mode: not_exposed
+coder_mode: agent
+coder_context_window: not_exposed
+plan_id: atlas-dev-pr-routing
+plan_path: dev-workflow/PR-TARGET-POLICY.md
+plan_revision: 7ad024450572908b34c55d77c7e1a7f07be592c3dd399672fd5e9942d1627192
+planner_model: Codex (GPT-6)
+planner_model_id: not_exposed
+planner_reasoning: not_exposed
+planner_max_mode: not_exposed
+planner_context_window: not_exposed
+fixes_change_ids: none
+-->
+
+
+# Mandatory Atlas PR routing
+
+Read the top of `AGENTS.md` before creating or updating a PR. Every ordinary PR must explicitly use `--base dev`. Only the same repository's exact `dev` branch may target `main`, and only when Jeremy explicitly requests production promotion. Do not automatically release, merge, deploy, or retarget existing PRs. Install the repository pre-push hook with `node scripts/install-pr-target-hook.cjs`; do not bypass it. This rule governs this repository, not downstream users of exported plugins.
